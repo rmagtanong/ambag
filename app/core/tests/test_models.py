@@ -68,7 +68,7 @@ class UserModelTests(TestCase):
 
 class GroupModelTests(TestCase):
 
-    def test_create_group_success(self):
+    def test_create_group(self):
         group = models.Group.objects.create(
             group_name='Test Group',
         )
@@ -78,7 +78,7 @@ class GroupModelTests(TestCase):
 
 class ExpenseModelTests(TestCase):
 
-    def test_create_expense_success(self):
+    def test_create_expense(self):
         user = create_user()
         group = create_group(user)
 
@@ -92,3 +92,6 @@ class ExpenseModelTests(TestCase):
         )
 
         self.assertEqual(expense.expense_name, 'Test Expense')
+        self.assertEqual(expense.amount, Decimal('1.00'))
+        self.assertEqual(expense.paid_by, user)
+        self.assertEqual(expense.group, group)
