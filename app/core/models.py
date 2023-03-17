@@ -38,7 +38,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    groups = models.ManyToManyField('Group',
+                                    related_name='members',
+                                    blank=True)
 
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+
+
+class Group(models.Model):
+    group_name = models.CharField(max_length=50)
+    group_members = models.ManyToManyField(User,
+                                           related_name='group_memberships')

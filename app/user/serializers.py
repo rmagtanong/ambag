@@ -8,10 +8,11 @@ from rest_framework import serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
+    groups = serializers.StringRelatedField(many=True, required=False)
 
     class Meta:
         model = get_user_model()
-        fields = ['email', 'password', 'name']
+        fields = ['email', 'password', 'name', 'groups']
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -25,6 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
         :param validated_data:
         :return user:
         """
+        validated_data.pop('groups', None)
         return get_user_model().objects.create_user(**validated_data)
 
     def update(self, instance, validated_data):
@@ -42,6 +44,11 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
 
         return user
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['groups'] = [group.group_name for group in instance.groups.all()]
+        return data
 
 
 class AuthTokenSerializer(serializers.Serializer):

@@ -4,8 +4,20 @@ Tests for Models
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
+from core import models
 
-class ModelTests(TestCase):
+
+def create_user():
+    email = 'test@example.com'
+    password = 'test1234'
+
+    return get_user_model().objects.create_user(
+        email=email,
+        password=password
+    )
+
+
+class UserModelTests(TestCase):
 
     def test_create_user_with_email_success(self):
         email = 'test@example.com'
@@ -43,3 +55,13 @@ class ModelTests(TestCase):
 
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
+
+
+class GroupModelTests(TestCase):
+
+    def test_create_group_success(self):
+        group = models.Group.objects.create(
+            group_name='Test Group',
+        )
+
+        self.assertEqual(group.group_name, 'Test Group')

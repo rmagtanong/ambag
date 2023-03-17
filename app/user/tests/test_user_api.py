@@ -123,10 +123,8 @@ class PrivateUserApiTests(TestCase):
     def test_retrieve_profile_success(self):
         res = self.client.get(ME_URL)
 
-        self.assertEqual(res.data, {
-            'name': self.user.name,
-            'email': self.user.email
-        })
+        self.assertEqual(res.data['name'], self.user.name)
+        self.assertEqual(res.data['email'], self.user.email)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_post_me_not_allowed(self):
