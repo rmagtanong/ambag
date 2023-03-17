@@ -37,4 +37,3 @@ class GroupViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         return user.groups.all()
-
