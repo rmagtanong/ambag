@@ -1,6 +1,9 @@
 """
 Tests for Models
 """
+from decimal import Decimal
+from datetime import date
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
@@ -15,6 +18,12 @@ def create_user():
         email=email,
         password=password
     )
+
+
+def create_group(user):
+    group = models.Group.objects.create(group_name='Test Group')
+    group.group_members.add(user)
+    return group
 
 
 class UserModelTests(TestCase):
@@ -65,3 +74,21 @@ class GroupModelTests(TestCase):
         )
 
         self.assertEqual(group.group_name, 'Test Group')
+
+
+class ExpenseModelTests(TestCase):
+
+    def test_create_expense_success(self):
+        user = create_user()
+        group = create_group(user)
+
+        expense = models.Expense.objects.create(
+            expense_name='Test Expense',
+            amount=Decimal('1.00'),
+            paid_by=user,
+            group=group,
+            date_created=date.today(),
+            date_modified=date.today()
+        )
+
+        self.assertEqual(expense.expense_name, 'Test Expense')
