@@ -87,7 +87,8 @@ class PrivateGroupExpenseApiTests(TestCase):
         self.user = create_user(**create_other_user_payload())
         self.client.force_authenticate(self.user)
 
-        res = self.client.post(detail_url(group_id), payload={'group_name': 'Test Group'})
+        res = self.client.post(detail_url(group_id),
+                               payload={'group_name': 'Test Group'})
 
         group = Group.objects.get(id=group_id)
         serializer = GroupSerializer(group)
@@ -101,7 +102,8 @@ class PrivateGroupExpenseApiTests(TestCase):
         group = self.client.post(GROUP_URL, {'group_name': 'Test Group'})
         group_id = group.data['id']
 
-        res = self.client.post(detail_url(group_id), payload={'group_name': 'Test Group'})
+        res = self.client.post(detail_url(group_id),
+                               payload={'group_name': 'Test Group'})
 
         group = Group.objects.get(id=group_id)
         serializer = GroupSerializer(group)

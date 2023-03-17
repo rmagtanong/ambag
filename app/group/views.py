@@ -49,9 +49,13 @@ class GroupViewSet(viewsets.ModelViewSet):
         group = Group.objects.get(id=group_id)
 
         if group.group_members.filter(id=user.id).exists():
-            return Response({'detail': 'User is already a member of this group.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'detail': 'User is already a member of this group.'},
+                status=status.HTTP_400_BAD_REQUEST)
 
         group.group_members.add(user)
         user.groups.add(group)
 
-        return Response({'detail': 'User has been added to the group.'}, status=status.HTTP_200_OK)
+        return Response({
+            'detail': 'User has been added to the group.'},
+            status=status.HTTP_200_OK)
