@@ -29,3 +29,12 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         user.groups.add(group)
         user.save()
+
+    def get_queryset(self):
+        """
+        Filter `Groups` where `User` is a group_member
+        :return:
+        """
+        user = self.request.user
+        return user.groups.all()
+
