@@ -32,6 +32,9 @@ class UserManager(BaseUserManager):
 
         return user
 
+    def get_by_email(self, email):
+        return self.get(email=email)
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
