@@ -19,7 +19,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        group_id = self.kwargs['group_pk']
+        group_id = self.kwargs['group_id']
         return Expense.objects.filter(group=group_id)
 
     def create(self, request, *args, **kwargs):

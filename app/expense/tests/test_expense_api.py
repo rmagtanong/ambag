@@ -69,5 +69,6 @@ class PrivateExpenseApiTests(TestCase):
         expense = Expense.objects.get(id=res.data['id'])
 
         self.assertEqual(res.data['expense_name'], expense.expense_name)
-        self.assertEqual(res.data['group'], expense.group.pk)
+        self.assertEqual(res.data['group']['id'], expense.group.pk)
+        self.assertEqual(res.data['group']['group_name'], expense.group.group_name)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)

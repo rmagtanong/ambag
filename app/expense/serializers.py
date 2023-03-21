@@ -1,18 +1,15 @@
 from rest_framework import serializers
 
-from core.models import Expense
-from group.serializers import GroupMemberSerializer
-
-
-class CustomDateField(serializers.DateField):
-    def to_representation(self, value):
-        return value.strftime('%d-%b-%Y')
+from core.models import Expense, User
+from core.serializers import UserDataSerializer, GroupDataSerializer, DateField
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
-    expense_members = GroupMemberSerializer(many=True, read_only=True)
-    date_created = CustomDateField()
-    date_modified = CustomDateField()
+    group = GroupDataSerializer()
+    paid_by = UserDataSerializer()
+    expense_members = UserDataSerializer(many=True, read_only=True)
+    date_created = DateField()
+    date_modified = DateField()
 
     class Meta:
         model = Expense
