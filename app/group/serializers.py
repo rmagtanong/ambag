@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Group, User
+from core.models import Group
 from core.serializers import UserDataSerializer
 
 

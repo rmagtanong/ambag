@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Expense, User
+from core.models import Expense
 from core.serializers import UserDataSerializer, GroupDataSerializer, DateField
 
 

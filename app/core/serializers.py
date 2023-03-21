@@ -3,7 +3,7 @@ Common data serializers
 """
 from rest_framework import serializers
 
-from core.models import User, Group, Expense
+from core.models import User, Group
 
 
 class UserDataSerializer(serializers.ModelSerializer):
