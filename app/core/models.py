@@ -51,3 +51,18 @@ class Group(models.Model):
     group_name = models.CharField(max_length=50)
     group_members = models.ManyToManyField(User,
                                            related_name='group_memberships')
+
+
+class Expense(models.Model):
+    expense_name = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+    group = models.ForeignKey(Group,
+                              on_delete=models.CASCADE,
+                              related_name='expenses')
+    paid_by = models.ForeignKey(User,
+                                on_delete=models.CASCADE,
+                                related_name='expenses_paid')
+    expense_members = models.ManyToManyField(User,
+                                             related_name='expenses_involved')
