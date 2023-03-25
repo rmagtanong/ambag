@@ -122,3 +122,56 @@ class GroupSpendingModelTests(TestCase):
 
         self.assertEqual(self.group.spending.total_spending,
                          new_total_spending)
+
+
+class SpendingBreakdownModelTests(TestCase):
+
+    def setUp(self):
+        self.group = models.Group.objects.create(group_name='Test Group')
+        self.user = create_user()
+        self.other_user = create_other_user()
+        self.expense = models.Expense.objects.create(
+            expense_name='Test Expense 1',
+            amount=100,
+            group=self.group,
+            paid_by=self.user
+        )
+        self.expense.expense_members.add(self.user, self.other_user)
+
+    def test_spending_breakdown_creation(self):
+        sb = models.SpendingBreakdown.objects.create(
+            user=self.user,
+            group=self.group,
+            total_paid=100.00,
+            total_spending=50.00
+        )
+        self.assertEqual(sb.user, self.user)
+        self.assertEqual(sb.group, self.group)
+        self.assertEqual(sb.total_paid, 100.00)
+        self.assertEqual(sb.total_spending, 50.00)
+
+    def test_spending_breakdown_uniqueness(self):
+        models.SpendingBreakdown.objects.create(
+            user=self.user,
+            group=self.group,
+            total_paid=100.00,
+            total_spending=50.00
+        )
+        with self.assertRaises(Exception):
+            models.SpendingBreakdown.objects.create(
+                user=self.user,
+                group=self.group,
+                total_paid=150.00,
+                total_spending=75.00
+            )
+
+    def test_get_spending_breakdown_by_user_and_group(self):
+        spending_breakdown = models.SpendingBreakdown.objects.create(
+            user=self.user,
+            group=self.group,
+            total_paid=100.00,
+            total_spending=50.00
+        )
+        sb_from_db = models.SpendingBreakdown.objects.get(user=self.user,
+                                                          group=self.group)
+        self.assertEqual(sb_from_db, spending_breakdown)

@@ -79,6 +79,24 @@ class GroupSpending(models.Model):
                                  related_name='spending')
 
 
+class SpendingBreakdown(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='spending_breakdowns')
+    group = models.ForeignKey(Group,
+                              on_delete=models.CASCADE,
+                              related_name='spending_breakdowns')
+    total_paid = models.DecimalField(max_digits=10,
+                                     decimal_places=2,
+                                     default=0)
+    total_spending = models.DecimalField(max_digits=10,
+                                         decimal_places=2,
+                                         default=0)
+
+    class Meta:
+        unique_together = ('user', 'group')
+
+
 @receiver(signal=post_save, sender=Group)
 def create_group_spending(sender, instance, created, **kwargs):
     if created:
