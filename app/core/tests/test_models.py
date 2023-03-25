@@ -108,9 +108,17 @@ class ExpenseModelTests(TestCase):
 
 class GroupSpendingModelTests(TestCase):
 
-    def test_new_group_no_spending(self):
-        group = models.Group.objects.create(
-            group_name='Test Group'
-        )
+    def setUp(self):
+        self.group = models.Group.objects.create(group_name='Test Group')
 
-        self.assertEqual(group.spending.total_spending, 0)
+    def test_new_group_no_spending(self):
+        self.assertEqual(self.group.spending.total_spending, 0)
+
+    def test_update_group_spending(self):
+        new_total_spending = 100
+
+        self.group.spending.total_spending = new_total_spending
+        self.group.spending.save()
+
+        self.assertEqual(self.group.spending.total_spending,
+                         new_total_spending)
