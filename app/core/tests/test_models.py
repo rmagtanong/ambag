@@ -11,13 +11,15 @@ from core import models
 
 
 def create_user():
-    email = 'test@example.com'
-    password = 'test1234'
-
     return get_user_model().objects.create_user(
-        email=email,
-        password=password
-    )
+        email='test@example.com',
+        password='test1234')
+
+
+def create_other_user():
+    return get_user_model().objects.create_user(
+        email='other@example.com',
+        password='other1234')
 
 
 def create_group(user):
@@ -70,10 +72,17 @@ class GroupModelTests(TestCase):
 
     def test_create_group(self):
         group = models.Group.objects.create(
-            group_name='Test Group',
+            group_name='Test Group'
         )
 
         self.assertEqual(group.group_name, 'Test Group')
+
+    def test_new_group_no_expense(self):
+        group = models.Group.objects.create(
+            group_name='Test Group'
+        )
+
+        self.assertEqual(len(group.expenses.all()), 0)
 
 
 class ExpenseModelTests(TestCase):
@@ -95,3 +104,13 @@ class ExpenseModelTests(TestCase):
         self.assertEqual(expense.amount, Decimal('1.00'))
         self.assertEqual(expense.paid_by, user)
         self.assertEqual(expense.group, group)
+
+
+class GroupSpendingModelTests(TestCase):
+
+    def test_new_group_no_spending(self):
+        group = models.Group.objects.create(
+            group_name='Test Group'
+        )
+
+        self.assertEqual(group.spending.total_spending, 0)

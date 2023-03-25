@@ -2,6 +2,8 @@
 Database models
 """
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -66,3 +68,18 @@ class Expense(models.Model):
                                 related_name='expenses_paid')
     expense_members = models.ManyToManyField(User,
                                              related_name='expenses_involved')
+
+
+class GroupSpending(models.Model):
+    total_spending = models.DecimalField(max_digits=10,
+                                         decimal_places=2,
+                                         default=0)
+    group = models.OneToOneField(Group,
+                                 on_delete=models.CASCADE,
+                                 related_name='spending')
+
+
+@receiver(signal=post_save, sender=Group)
+def create_group_spending(sender, instance, created, **kwargs):
+    if created:
+        GroupSpending.objects.create(group=instance)
