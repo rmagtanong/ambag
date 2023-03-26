@@ -7,7 +7,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import User, Expense
+from core.models import User
 from core.repository.user_repository import UserRepository
 from core.repository.group_repository import GroupRepository
 from core.repository.expense_repository import ExpenseRepository
