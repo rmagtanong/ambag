@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.models import User, Group, Expense
+from core.repository.user_repository import UserRepository
 from expense import serializers
 
 
@@ -32,7 +33,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         expense_members_emails = data.pop('expense_members', [])
 
         try:
-            paid_by = User.objects.get(email=paid_by_email)
+            paid_by = UserRepository.get_by_email(paid_by_email)
         except User.DoesNotExist:
             return Response({
                 'paid_by': f'User does not exist, email={paid_by_email}'},
@@ -41,7 +42,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         expense_members = []
         for email in expense_members_emails:
             try:
-                user = User.objects.get(email=email)
+                user = UserRepository.get_by_email(email)
             except User.DoesNotExist:
                 return Response({
                     'expense_members': f'User does not exist, email={email}'},
