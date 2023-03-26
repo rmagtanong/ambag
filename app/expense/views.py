@@ -1,17 +1,16 @@
 """
 Views for Expense API
 """
-from datetime import date
-
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import User, Group, Expense
+from core.models import User, Expense
 from core.repository.user_repository import UserRepository
 from core.repository.group_repository import GroupRepository
+from core.repository.expense_repository import ExpenseRepository
 from expense import serializers
 
 
@@ -22,7 +21,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         group_id = self.kwargs['group_id']
-        return Expense.objects.filter(group=group_id)
+        return ExpenseRepository.get_group_expenses(group_id)
 
     def create(self, request, *args, **kwargs):
         group_id = self.kwargs['group_id']
@@ -51,15 +50,13 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
             expense_members.append(user)
 
-        expense = Expense.objects.create(
+        expense = ExpenseRepository.create_expense(
             expense_name=data.get('expense_name'),
             amount=data.get('amount'),
-            date_created=date.today(),
-            date_modified=date.today(),
             group=group,
-            paid_by=paid_by
+            paid_by=paid_by,
+            expense_members=expense_members
         )
-        expense.expense_members.set(expense_members)
 
         return Response(self.serializer_class(expense).data,
                         status=status.HTTP_201_CREATED)

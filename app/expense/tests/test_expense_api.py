@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core.models import Group, Expense
+from core.repository.expense_repository import ExpenseRepository
 
 
 GROUP_URL = reverse('group:group-list')
@@ -71,3 +72,29 @@ class PrivateExpenseApiTests(TestCase):
         self.assertEqual(res.data['expense_name'], expense.expense_name)
         self.assertEqual(res.data['group']['id'], expense.group.pk)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_get_all_expenses_per_group(self):
+        group = create_group(self.user)
+        other_user = create_user(**create_other_user_payload())
+
+        ExpenseRepository.create_expense(
+            expense_name='Test Expense 1',
+            amount=1,
+            group=group,
+            paid_by=self.user,
+            expense_members=[self.user,
+                             other_user]
+        )
+
+        ExpenseRepository.create_expense(
+            expense_name='Test Expense 2',
+            amount=1,
+            group=group,
+            paid_by=self.user,
+            expense_members=[self.user,
+                             other_user]
+        )
+
+        res = self.client.get(detail_url(group.pk))
+
+        self.assertEqual(len(res.data), 2)
