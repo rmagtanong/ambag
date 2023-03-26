@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from core.models import Group
+from core.repository.group_repository import GroupRepository
 from group import serializers
 
 
@@ -46,15 +47,14 @@ class GroupViewSet(viewsets.ModelViewSet):
         user = request.user
         group_id = self.kwargs['pk']
 
-        group = Group.objects.get(id=group_id)
+        group = GroupRepository.get_group(group_id)
 
-        if group.group_members.filter(id=user.id).exists():
+        if GroupRepository.is_existing_member(group, user.id):
             return Response({
                 'detail': 'User is already a member of this group.'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        group.group_members.add(user)
-        user.groups.add(group)
+        GroupRepository.add_member(group, user)
 
         return Response({
             'detail': 'User has been added to the group.'},

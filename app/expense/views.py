@@ -11,6 +11,7 @@ from rest_framework.response import Response
 
 from core.models import User, Group, Expense
 from core.repository.user_repository import UserRepository
+from core.repository.group_repository import GroupRepository
 from expense import serializers
 
 
@@ -25,7 +26,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         group_id = self.kwargs['group_id']
-        group = Group.objects.get(pk=group_id)
+        group = GroupRepository.get_group(group_id)
 
         data = request.data.copy()
 
