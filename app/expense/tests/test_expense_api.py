@@ -3,6 +3,7 @@ Test Expense API
 """
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -72,6 +73,60 @@ class PrivateExpenseApiTests(TestCase):
         self.assertEqual(res.data['expense_name'], expense.expense_name)
         self.assertEqual(res.data['group']['id'], expense.group.pk)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_create_expense_invalid_paid_by(self):
+        group = create_group(self.user)
+        other_user = create_user(**create_other_user_payload())
+        payload = {
+            'expense_name': 'Test Expense',
+            'amount': Decimal('1.00'),
+            'paid_by': 'invalid_email',
+            'expense_members': [self.user.email,
+                                other_user.email]
+        }
+
+        with self.assertRaises(ValidationError) as cm:
+            self.client.post(detail_url(group.pk), payload)
+
+        expected_err_msg = 'paid_by email invalid, email=invalid_email'
+        actual_err_msg = str(cm.exception.message)
+
+        self.assertEqual(actual_err_msg, expected_err_msg)
+
+    def test_create_expense_invalid_expense_member_email(self):
+        group = create_group(self.user)
+        payload = {
+            'expense_name': 'Test Expense',
+            'amount': Decimal('1.00'),
+            'paid_by': self.user.email,
+            'expense_members': [self.user.email,
+                                'invalid_email']
+        }
+
+        with self.assertRaises(ValidationError) as cm:
+            self.client.post(detail_url(group.pk), payload)
+
+        expected_err_msg = 'expense_member email invalid, email=invalid_email'
+        actual_err_msg = str(cm.exception.message)
+
+        self.assertEqual(actual_err_msg, expected_err_msg)
+
+    def test_create_expense_empty_members(self):
+        group = create_group(self.user)
+        payload = {
+            'expense_name': 'Test Expense',
+            'amount': Decimal('1.00'),
+            'paid_by': self.user.email,
+            'expense_members': []
+        }
+
+        with self.assertRaises(ValidationError) as cm:
+            self.client.post(detail_url(group.pk), payload)
+
+        expected_err_msg = 'expense_members should have at least 1 user'
+        actual_err_msg = str(cm.exception.message)
+
+        self.assertEqual(actual_err_msg, expected_err_msg)
 
     def test_get_all_expenses_per_group(self):
         group = create_group(self.user)

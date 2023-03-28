@@ -4,7 +4,7 @@ Service layer for Group API
 from rest_framework import status
 from rest_framework.response import Response
 
-from core.models import User, Group
+from core.models import User
 from core.repository.group_repository import GroupRepository
 
 
