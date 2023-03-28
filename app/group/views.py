@@ -2,15 +2,13 @@
 Views for Group API
 """
 from rest_framework import viewsets
-from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
 from core.models import Group
-from core.repository.group_repository import GroupRepository
 from group import serializers
+from group.service import join_group
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -47,15 +45,4 @@ class GroupViewSet(viewsets.ModelViewSet):
         user = request.user
         group_id = self.kwargs['pk']
 
-        group = GroupRepository.get_group(group_id)
-
-        if GroupRepository.is_existing_member(group, user.id):
-            return Response({
-                'detail': 'User is already a member of this group.'},
-                status=status.HTTP_400_BAD_REQUEST)
-
-        GroupRepository.add_member(group, user)
-
-        return Response({
-            'detail': 'User has been added to the group.'},
-            status=status.HTTP_200_OK)
+        return join_group(user, group_id)
