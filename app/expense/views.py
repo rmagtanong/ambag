@@ -7,11 +7,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import User
-from core.repository.user_repository import UserRepository
-from core.repository.group_repository import GroupRepository
 from core.repository.expense_repository import ExpenseRepository
+
 from expense import serializers
+from expense.service import create_expense
 from expense.validators import validate_expense_data
 
 
@@ -35,36 +34,4 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        group = GroupRepository.get_group(validated_data['group_id'])
-
-        paid_by_email = validated_data['paid_by']
-        expense_members_emails = validated_data['expense_members']
-
-        try:
-            paid_by = UserRepository.get_by_email(paid_by_email)
-        except User.DoesNotExist:
-            return Response({
-                'paid_by': f'User does not exist, email={paid_by_email}'},
-                status=status.HTTP_400_BAD_REQUEST)
-
-        expense_members = []
-        for email in expense_members_emails:
-            try:
-                user = UserRepository.get_by_email(email)
-            except User.DoesNotExist:
-                return Response({
-                    'expense_members': f'User does not exist, email={email}'},
-                    status=status.HTTP_400_BAD_REQUEST)
-
-            expense_members.append(user)
-
-        expense = ExpenseRepository.create_expense(
-            expense_name=validated_data['expense_name'],
-            amount=validated_data['amount'],
-            group=group,
-            paid_by=paid_by,
-            expense_members=expense_members
-        )
-
-        return Response(self.serializer_class(expense).data,
-                        status=status.HTTP_201_CREATED)
+        return create_expense(validated_data)
