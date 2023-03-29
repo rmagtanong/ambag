@@ -55,18 +55,19 @@ class PrivateExpenseApiTests(TestCase):
         self.user = create_user(**create_user_payload())
         self.client.force_authenticate(self.user)
 
+        self.group = create_group(self.user)
+        self.other_user = create_user(**create_other_user_payload())
+
     def test_create_expense_success(self):
-        group = create_group(self.user)
-        other_user = create_user(**create_other_user_payload())
         payload = {
             'expense_name': 'Test Expense',
             'amount': Decimal('1.00'),
             'paid_by': self.user.email,
             'expense_members': [self.user.email,
-                                other_user.email]
+                                self.other_user.email]
         }
 
-        res = self.client.post(detail_url(group.pk), payload)
+        res = self.client.post(detail_url(self.group.pk), payload)
 
         expense = Expense.objects.get(id=res.data['id'])
 
@@ -75,18 +76,16 @@ class PrivateExpenseApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_create_expense_invalid_paid_by(self):
-        group = create_group(self.user)
-        other_user = create_user(**create_other_user_payload())
         payload = {
             'expense_name': 'Test Expense',
             'amount': Decimal('1.00'),
             'paid_by': 'invalid_email',
             'expense_members': [self.user.email,
-                                other_user.email]
+                                self.other_user.email]
         }
 
         with self.assertRaises(ValidationError) as cm:
-            self.client.post(detail_url(group.pk), payload)
+            self.client.post(detail_url(self.group.pk), payload)
 
         expected_err_msg = 'paid_by email invalid, email=invalid_email'
         actual_err_msg = str(cm.exception.message)
@@ -94,7 +93,6 @@ class PrivateExpenseApiTests(TestCase):
         self.assertEqual(actual_err_msg, expected_err_msg)
 
     def test_create_expense_invalid_expense_member_email(self):
-        group = create_group(self.user)
         payload = {
             'expense_name': 'Test Expense',
             'amount': Decimal('1.00'),
@@ -104,7 +102,7 @@ class PrivateExpenseApiTests(TestCase):
         }
 
         with self.assertRaises(ValidationError) as cm:
-            self.client.post(detail_url(group.pk), payload)
+            self.client.post(detail_url(self.group.pk), payload)
 
         expected_err_msg = 'expense_member email invalid, email=invalid_email'
         actual_err_msg = str(cm.exception.message)
@@ -112,7 +110,6 @@ class PrivateExpenseApiTests(TestCase):
         self.assertEqual(actual_err_msg, expected_err_msg)
 
     def test_create_expense_empty_members(self):
-        group = create_group(self.user)
         payload = {
             'expense_name': 'Test Expense',
             'amount': Decimal('1.00'),
@@ -121,7 +118,7 @@ class PrivateExpenseApiTests(TestCase):
         }
 
         with self.assertRaises(ValidationError) as cm:
-            self.client.post(detail_url(group.pk), payload)
+            self.client.post(detail_url(self.group.pk), payload)
 
         expected_err_msg = 'expense_members should have at least 1 user'
         actual_err_msg = str(cm.exception.message)
@@ -129,27 +126,24 @@ class PrivateExpenseApiTests(TestCase):
         self.assertEqual(actual_err_msg, expected_err_msg)
 
     def test_get_all_expenses_per_group(self):
-        group = create_group(self.user)
-        other_user = create_user(**create_other_user_payload())
-
         ExpenseRepository.create_expense(
             expense_name='Test Expense 1',
             amount=1,
-            group=group,
+            group=self.group,
             paid_by=self.user,
             expense_members=[self.user,
-                             other_user]
+                             self.other_user]
         )
 
         ExpenseRepository.create_expense(
             expense_name='Test Expense 2',
             amount=1,
-            group=group,
+            group=self.group,
             paid_by=self.user,
             expense_members=[self.user,
-                             other_user]
+                             self.other_user]
         )
 
-        res = self.client.get(detail_url(group.pk))
+        res = self.client.get(detail_url(self.group.pk))
 
         self.assertEqual(len(res.data), 2)

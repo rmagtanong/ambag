@@ -60,3 +60,5 @@ def validate_expense_data(data: Dict, group_id: int) -> Dict:
     validated_data['group_id'] = group_id
 
     return validated_data
+
+
