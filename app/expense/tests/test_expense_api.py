@@ -87,7 +87,7 @@ class PrivateExpenseApiTests(TestCase):
         with self.assertRaises(ValidationError) as cm:
             self.client.post(detail_url(self.group.pk), payload)
 
-        expected_err_msg = 'paid_by email invalid, email=invalid_email'
+        expected_err_msg = 'email invalid, email=invalid_email'
         actual_err_msg = str(cm.exception.message)
 
         self.assertEqual(actual_err_msg, expected_err_msg)
@@ -104,7 +104,7 @@ class PrivateExpenseApiTests(TestCase):
         with self.assertRaises(ValidationError) as cm:
             self.client.post(detail_url(self.group.pk), payload)
 
-        expected_err_msg = 'expense_member email invalid, email=invalid_email'
+        expected_err_msg = 'email invalid, email=invalid_email'
         actual_err_msg = str(cm.exception.message)
 
         self.assertEqual(actual_err_msg, expected_err_msg)
