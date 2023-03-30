@@ -125,6 +125,22 @@ class PrivateExpenseApiTests(TestCase):
 
         self.assertEqual(actual_err_msg, expected_err_msg)
 
+    def test_create_expense_update_group_spending(self):
+        payload = {
+            'expense_name': 'Test Expense',
+            'amount': Decimal('1.00'),
+            'paid_by': self.user.email,
+            'expense_members': [self.user.email,
+                                self.other_user.email]
+        }
+
+        res = self.client.post(detail_url(self.group.pk), payload)
+
+        self.group.refresh_from_db()
+
+        self.assertEqual(self.group.spending.total_spending, 1)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
     def test_get_all_expenses_per_group(self):
         ExpenseRepository.create_expense(
             expense_name='Test Expense 1',

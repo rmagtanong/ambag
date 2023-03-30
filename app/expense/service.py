@@ -1,6 +1,8 @@
 """
 Service layer for Expense API
 """
+from decimal import Decimal
+
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -25,6 +27,8 @@ def create_expense(request):
                            group,
                            paid_by,
                            expense_members)
+
+    update_spending(group, expense)
 
     serializer = ExpenseSerializer(expense)
 
@@ -65,3 +69,12 @@ def save_expense(expense_name, amount, group, paid_by, expense_members):
         paid_by=paid_by,
         expense_members=expense_members
     )
+
+
+def update_spending(group, expense):
+    update_group_spending(group.spending, expense.amount)
+
+
+def update_group_spending(group_spending, amount):
+    group_spending.total_spending += Decimal(str(amount))
+    group_spending.save()
