@@ -28,7 +28,7 @@ def create_expense(request):
                            paid_by,
                            expense_members)
 
-    update_spending(group, expense)
+    update_balances(group, expense)
 
     serializer = ExpenseSerializer(expense)
 
@@ -71,10 +71,35 @@ def save_expense(expense_name, amount, group, paid_by, expense_members):
     )
 
 
-def update_spending(group, expense):
+def update_balances(group, expense):
     update_group_spending(group.spending, expense.amount)
+
+    update_total_paid(group, expense)
+
+    update_user_spending(group, expense)
 
 
 def update_group_spending(group_spending, amount):
     group_spending.total_spending += Decimal(str(amount))
     group_spending.save()
+
+
+def update_total_paid(group, expense):
+    spending_breakdown = expense.paid_by.spending_breakdowns.get(group=group)
+    spending_breakdown.total_paid += Decimal(expense.amount)
+    spending_breakdown.save()
+
+
+def update_user_spending(group, expense):
+    expense_members = expense.expense_members.all()
+    amount_per_member = split_evenly(expense.amount, expense_members)
+
+    for user in expense_members:
+        spending_breakdown = user.spending_breakdowns.get(group=group)
+        spending_breakdown.total_spending += amount_per_member
+        spending_breakdown.save()
+
+
+def split_evenly(amount, expense_members):
+    no_members = len(expense_members)
+    return round(Decimal(amount)/no_members, 2)

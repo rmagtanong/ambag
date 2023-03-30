@@ -12,6 +12,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core.models import Group, Expense
+from core.repository.group_repository import GroupRepository
 from core.repository.expense_repository import ExpenseRepository
 
 
@@ -44,8 +45,12 @@ def create_other_user_payload():
 
 def create_group(user):
     group = Group.objects.create(group_name='Test Group')
-    group.group_members.add(user)
+    GroupRepository.add_member(group, user)
     return group
+
+
+def add_group_member(group, user):
+    GroupRepository.add_member(group, user)
 
 
 class PrivateExpenseApiTests(TestCase):
@@ -57,6 +62,7 @@ class PrivateExpenseApiTests(TestCase):
 
         self.group = create_group(self.user)
         self.other_user = create_user(**create_other_user_payload())
+        add_group_member(self.group, self.other_user)
 
     def test_create_expense_success(self):
         payload = {
@@ -134,11 +140,61 @@ class PrivateExpenseApiTests(TestCase):
                                 self.other_user.email]
         }
 
+        self.assertEqual(self.group.spending.total_spending, 0)
+
         res = self.client.post(detail_url(self.group.pk), payload)
 
         self.group.refresh_from_db()
 
         self.assertEqual(self.group.spending.total_spending, 1)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_create_expense_update_paid_by_total(self):
+        payload = {
+            'expense_name': 'Test Expense',
+            'amount': Decimal('1.00'),
+            'paid_by': self.user.email,
+            'expense_members': [self.user.email,
+                                self.other_user.email]
+        }
+
+        user_sb = self.group.spending_breakdowns.get(user=self.user)
+        self.assertEqual(user_sb.total_paid, 0)
+
+        res = self.client.post(detail_url(self.group.pk), payload)
+
+        self.group.refresh_from_db()
+
+        new_user_sb = self.group.spending_breakdowns.get(user=self.user)
+
+        self.assertEqual(new_user_sb.total_paid, 1)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_create_expense_update_user_spending(self):
+        payload = {
+            'expense_name': 'Test Expense',
+            'amount': Decimal('1.00'),
+            'paid_by': self.user.email,
+            'expense_members': [self.user.email,
+                                self.other_user.email]
+        }
+
+        user_sb = self.group.spending_breakdowns.get(user=self.user)
+        other_sb = self.group.spending_breakdowns.get(user=self.other_user)
+
+        self.assertEqual(user_sb.total_spending, 0)
+        self.assertEqual(other_sb.total_spending, 0)
+
+        res = self.client.post(detail_url(self.group.pk), payload)
+
+        self.group.refresh_from_db()
+
+        new_user_sb = self.group.spending_breakdowns.get(user=self.user)
+        new_other_sb = self.group.spending_breakdowns.get(user=self.other_user)
+
+        self.assertEqual(new_user_sb.total_spending, 0.5)
+        self.assertEqual(new_other_sb.total_spending, 0.5)
+
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_get_all_expenses_per_group(self):

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from core.models import User, Group
+from core.models import User, Group, SpendingBreakdown
 
 
 class GroupRepository:
@@ -22,3 +22,5 @@ class GroupRepository:
                    user: User) -> None:
         group.group_members.add(user)
         user.groups.add(group)
+
+        SpendingBreakdown.objects.create(user=user, group=group)
